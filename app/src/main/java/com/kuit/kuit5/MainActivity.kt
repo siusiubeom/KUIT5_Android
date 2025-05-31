@@ -24,6 +24,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.kuit.kuit5.navigation.BottomNavItem
 import com.kuit.kuit5.navigation.KuitNavGraph
@@ -65,19 +66,31 @@ class MainActivity : ComponentActivity() {
                     ),
                     BottomNavItem(
                         label = "금융쇼핑",
-                        route = Route.Shopping.route,
+                        route = Route.ShoppingSubGraph.route,
                         selectedIcon = R.drawable.ic_bottomnav_shopping,
                         unselectedIcon = R.drawable.ic_bottomnav_shopping
                     )
                 )
 
-                var selectedIndex by rememberSaveable { mutableIntStateOf(0) }
+                //BottomNavigation을 보여줄 화면들
+                val bottomNavRoutes = listOf(
+                    Route.Home.route,
+                    Route.Assets.route,
+                    Route.Records.route,
+                    Route.Health.route,
+                    Route.Shopping.route
+                )
+
+                // var selectedIndex by rememberSaveable { mutableIntStateOf(0) }
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = navBackStackEntry?.destination?.route
 
                 Scaffold(
                     modifier = Modifier
                         .systemBarsPadding(),
                     contentWindowInsets = WindowInsets.safeDrawing,
                     bottomBar = {
+                        if(currentRoute in bottomNavRoutes)
                         NavigationBar(
                             modifier = Modifier
                                 .drawBehind {
@@ -92,8 +105,13 @@ class MainActivity : ComponentActivity() {
                             containerColor = Color.White,
                         ) {
                             navBarItems.forEachIndexed { index, item ->
+                                val isSelected = when(item.route){
+                                    Route.ShoppingSubGraph.route -> currentRoute == Route.Shopping.route
+                                    else -> currentRoute == item.route
+                                }
                                 NavigationBarItem(
-                                    selected = selectedIndex == index,
+                                    //selected = selectedIndex == index,
+                                    selected = isSelected,
                                     alwaysShowLabel = true,
                                     label = {
                                         Text(
@@ -101,13 +119,13 @@ class MainActivity : ComponentActivity() {
                                         )
                                     },
                                     onClick = {
-                                        selectedIndex = index
+                                        // selectedIndex = index
                                         navController.navigate(item.route)
                                     },
                                     icon = {
                                         Icon(
                                             painter = painterResource(
-                                                if (index == selectedIndex) {
+                                                if (isSelected) {
                                                     item.selectedIcon
                                                 } else item.unselectedIcon
                                             ),
